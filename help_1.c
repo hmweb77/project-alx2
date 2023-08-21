@@ -1,154 +1,57 @@
 #include "shell.h"
 
 /**
- * str_length - returns the length of a string.
- * @string: pointer to string.
- * Return: length of string.
+ * free_recurrent_data - free the fields needed each loop
+ * @data: struct of the program's data
+ * Return: Nothing
  */
-int str_length(char *string)
+void free_recurrent_data(data_of_program *data)
 {
-	int length = 0;
+	if (data->tokens)
+		free_array_of_pointers(data->tokens);
+	if (data->input_line)
+		free(data->input_line);
+	if (data->command_name)
+		free(data->command_name);
 
-	if (string == NULL)
-		return (0);
-
-	while (string[length++] != '\0')
-	{
-	}
-	return (--length);
+	data->input_line = NULL;
+	data->command_name = NULL;
+	data->tokens = NULL;
 }
 
 /**
- * str_duplicate - duplicates an string
- * @string: String to be copied
- * Return: pointer to the array
+ * free_all_data - free all field of the data
+ * @data: struct of the program's data
+ * Return: Nothing
  */
-char *str_duplicate(char *string)
+void free_all_data(data_of_program *data)
 {
-	char *result;
-	int length, i;
-
-	if (string == NULL)
-		return (NULL);
-
-	length = str_length(string) + 1;
-
-	result = malloc(sizeof(char) * length);
-
-	if (result == NULL)
+	if (data->file_descriptor != 0)
 	{
-		errno = ENOMEM;
-		perror("Error");
-		return (NULL);
+		if (close(data->file_descriptor))
+			perror(data->program_name);
 	}
-	for (i = 0; i < length ; i++)
-	{
-		result[i] = string[i];
-	}
-
-	return (result);
+	free_recurrent_data(data);
+	free_array_of_pointers(data->env);
+	free_array_of_pointers(data->alias_list);
 }
 
 /**
- * str_compare - Compare two strings
- * @string1: String one, or the shorter
- * @string2: String two, or the longer
- * @number: number of characters to be compared, 0 if infinite
- * Return: 1 if the strings are equals,0 if the strings are different
+ * free_array_of_pointers - frees each pointer of an array of pointers and the
+ * array too
+ * @array: array of pointers
+ * Return: nothing
  */
-int str_compare(char *string1, char *string2, int number)
+void free_array_of_pointers(char **array)
 {
-	int iterator;
+	int i;
 
-	if (string1 == NULL && string2 == NULL)
-		return (1);
-
-	if (string1 == NULL || string2 == NULL)
-		return (0);
-
-	if (number == 0) /* infinite longitud */
+	if (array != NULL)
 	{
-		if (str_length(string1) != str_length(string2))
-			return (0);
-		for (iterator = 0; string1[iterator]; iterator++)
-		{
-			if (string1[iterator] != string2[iterator])
-				return (0);
-		}
-		return (1);
-	}
-	else /* if there is a number of chars to be compared */
-	{
-		for (iterator = 0; iterator < number ; iterator++)
-		{
-			if (string1[iterator] != string2[iterator])
-			return (0);
-		}
-		return (1);
-	}
-}
+		for (i = 0; array[i]; i++)
+			free(array[i]);
 
-/**
- * str_concat - concatenates two strings.
- * @string1: String to be concatenated
- * @string2: String to be concatenated
- *
- * Return: pointer to the array
- */
-char *str_concat(char *string1, char *string2)
-{
-	char *result;
-	int length1 = 0, length2 = 0;
-
-	if (string1 == NULL)
-		string1 = "";
-	length1 = str_length(string1);
-
-	if (string2 == NULL)
-		string2 = "";
-	length2 = str_length(string2);
-
-	result = malloc(sizeof(char) * (length1 + length2 + 1));
-	if (result == NULL)
-	{
-		errno = ENOMEM;
-		perror("Error");
-		return (NULL);
-	}
-
-	/* copy of string1 */
-	for (length1 = 0; string1[length1] != '\0'; length1++)
-		result[length1] = string1[length1];
-	free(string1);
-
-	/* copy of string2 */
-	for (length2 = 0; string2[length2] != '\0'; length2++)
-	{
-		result[length1] = string2[length2];
-		length1++;
-	}
-
-	result[length1] = '\0';
-	return (result);
-}
-
-
-/**
- * str_reverse - reverses a string.
- *
- * @string: pointer to string.
- * Return: void.
- */
-void str_reverse(char *string)
-{
-
-	int i = 0, length = str_length(string) - 1;
-	char hold;
-
-	while (i < length)
-	{
-		hold = string[i];
-		string[i++] = string[length];
-		string[length--] = hold;
+		free(array);
+		array = NULL;
 	}
 }
